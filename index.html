@@ -207,7 +207,7 @@
 </div>
 
 <script>
-    // Dataset included from provided PDF content
+    // DATASET
     const library = {
         "Short a": ["Pam sat on the hat.", "The cat can see a rat.", "The bag is tan.", "The cat is in the cab.", "She has a cat.", "Dad has a map.", "Sam has a nap on my lap."],
         "Nasal a (am, an)": ["The man can have a nap.", "Dan is a fan.", "The man is in the van.", "Look at the pan.", "Dan ran to the pad.", "The cat had ham.", "Do you like jam?"],
@@ -288,6 +288,28 @@
     const speedRange = document.getElementById('speed');
     const speedValDisplay = document.getElementById('speed-val');
 
+    // VOICE SELECTOR LOGIC
+    let voices = [];
+    function setVoice() {
+        voices = window.speechSynthesis.getVoices();
+    }
+    
+    // Some browsers need this event to load voices
+    window.speechSynthesis.onvoiceschanged = setVoice;
+    setVoice();
+
+    function getAmericanMaleVoice() {
+        // Look for en-US + Male
+        let selectedVoice = voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('male'));
+        
+        // If no specifically "Male" voice found, just grab the first en-US voice
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => v.lang === 'en-US');
+        }
+        
+        return selectedVoice;
+    }
+
     // SPLASH SCREEN LOGIC
     window.onload = () => {
         setTimeout(() => {
@@ -300,7 +322,7 @@
                 content.style.display = 'block';
                 setTimeout(() => content.style.opacity = '1', 10);
             }, 800);
-        }, 2000); // 2 seconds showing splash
+        }, 2000); 
     };
 
     Object.keys(library).forEach(skill => {
@@ -322,7 +344,6 @@
         library[skill].forEach(sentence => {
             const container = document.createElement('div');
             container.className = 'strip-container';
-            
             const wrapper = document.createElement('div');
             wrapper.className = 'words-wrapper';
             
@@ -348,6 +369,14 @@
     function speak(text) {
         const cleanText = text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
         const utterance = new SpeechSynthesisUtterance(cleanText);
+        
+        // APPLY THE VOICE FIX HERE
+        const amVoice = getAmericanMaleVoice();
+        if (amVoice) {
+            utterance.voice = amVoice;
+        }
+        utterance.lang = 'en-US'; 
+        
         utterance.rate = speedRange.value;
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(utterance);
